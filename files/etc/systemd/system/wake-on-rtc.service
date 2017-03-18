@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # Systemd service definition for the Wake-on-RTC service
 #
-# This service calls the script /usr/local/sbin/wortcsrv.py to start and
+# This service calls the script /usr/local/sbin/wake-on-rtc.py to start and
 # stop the service.
 #
 # Author: Bernhard Bablok
@@ -20,8 +20,8 @@ Before=basic.target
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/usr/local/sbin/wortcsrv.py start
-ExecStop=/usr/local/sbin/wortcsrv.py stop
+ExecStart=/usr/local/sbin/wake-on-rtc.py start
+ExecStop=/usr/local/sbin/wake-on-rtc.py stop
 
 [Install]
 WantedBy=basic.target
