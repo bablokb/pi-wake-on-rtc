@@ -1,0 +1,27 @@
+# --------------------------------------------------------------------------
+# Systemd service definition for the Wake-on-RTC service
+#
+# This service calls the script /usr/local/sbin/wortcsrv.py to start and
+# stop the service.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/pi-wake-on-rtc
+#
+# --------------------------------------------------------------------------
+
+[Unit]
+Description=Wake-on-RTC service
+DefaultDependencies=no
+After=sysinit.target local-fs.target
+Before=basic.target
+ 
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/sbin/wortcsrv.py start
+ExecStop=/usr/local/sbin/wortcsrv.py stop
+
+[Install]
+WantedBy=basic.target
