@@ -1,0 +1,53 @@
+#!/bin/bash
+# --------------------------------------------------------------------------
+# This script installs files and services specific to this project.
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/pi-wake-on-rtc
+#
+# --------------------------------------------------------------------------
+
+# --- basic packages   ------------------------------------------------------
+
+PACKAGES=""
+
+if [ -n "$PACKAGES" ]; then
+  apt-get update
+  apt-get -y install $PACKAGES
+fi
+
+# --- install specific files   ----------------------------------------------
+
+rand="$RANDOM"
+if [ -f /etc/wake-on-rtc.conf ]; then
+  # save current configuration
+  mv /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.$rand
+fi
+
+for f in `find $(dirname "$0")/../files/ -type f`; do
+  cp "$f" "${f#*files}"
+done
+chmod 755 /usr/local/sbin/wortcsrv.py
+chmod 755 /usr/local/sbin/rtcctl
+chmod 644 /etc/wake-on-rtc.conf
+chmod 644 /etc/systemd/system/wake-on-rtc.service
+chown root:root /etc/systemd/system/wake-on-rtc.service \
+                                    /usr/local/sbin/wortcsrv.py \
+                                    /usr/local/sbin/rtcctl
+
+# restore old configuration
+if [ -f /etc/wake-on-rtc.conf.$rand ]; then
+  mv -f /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.new
+  mv /etc/wake-on-rtc.conf.$rand /etc/wake-on-rtc.conf
+  echo -e "\nnew version of configuration file: /etc/wake-on-rtc.conf.new"
+fi
+
+# --- activate service   ----------------------------------------------------
+
+systemctl enable wake-on-rtc.service
+
+# --- final configuration is manual   ---------------------------------------
+
+echo "please edit /etc/wake-on-rtc.conf and start wake-on-rtc.service afterwards"
