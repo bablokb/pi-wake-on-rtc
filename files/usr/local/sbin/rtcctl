@@ -1,0 +1,114 @@
+#!/usr/bin/python
+# --------------------------------------------------------------------------
+# Control script for RTC
+#
+# Supported commands
+#  help  - dump list of available commands
+#  show  - display datetime, alarm1, alarm2 or all
+#  dump  - display control or status register
+#  set   - datetime, alarm1, alarm2
+#  on    - turn alarm1/alarm2 on
+#  off   - turn alarm1/alarm2 on
+#  clear - clear alarm1/alarm2-flag
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/pi-wake-on-rtc
+#
+# --------------------------------------------------------------------------
+
+import sys
+
+# --- help   ---------------------------------------------------------------
+
+def help(argv):
+  """
+  Dump list of available commands
+  """
+  print """
+Available commands (date and time are synonyms):
+     help                                - dump list of available commands
+     show  [date|time|alarm1|alarm2|all] - display datetime, alarm1, alarm2 or all
+     dump  [control|status|all]          - display control or status register
+     set   date|time|alarm1|alarm2       - datetime, alarm1, alarm2
+     on    date|time|alarm1|alarm2       - turn alarm1/alarm2 on
+     off   date|time|alarm1|alarm2       - turn alarm1/alarm2 on
+     clear alarm1|alarm2                 - clear alarm1/alarm2-flag
+  """
+
+# --- show   ---------------------------------------------------------------
+
+def show(argv):
+  """
+  Display date, time, alarm1, alarm2 or all (date and time are synonyms)
+  
+  Arg: date|time|alarm1|alarm2|all (default: all)
+  """
+  print "Arguments: ", argv
+  pass
+
+# --- dump   ---------------------------------------------------------------
+
+def dump(argv):
+  """
+  Display control or status register
+
+  Arg: control|status|all (default: all)
+  """
+  pass
+
+# --- set   ----------------------------------------------------------------
+
+def set(argv):
+  """
+  set date, time, alarm1, alarm2 (date and time are synonyms)
+  
+  Arg: date|time|alarm1|alarm2
+  """
+  pass
+
+# --- on  -- ---------------------------------------------------------------
+
+def on(argv):
+  """
+  Turn alarm1/alarm2 on
+
+  Arg: alarm1|alarm2
+  """
+  pass
+
+# --- off   ----------------------------------------------------------------
+
+def off(argv):
+  """
+  Turn alarm1/alarm2 on
+
+  Arg: alarm1|alarm2
+  """
+  pass
+
+# --- help   ---------------------------------------------------------------
+
+def clear(argv):
+  """
+  Clear alarm1/alarm2-flag
+
+  Arg: alarm1|alarm2
+  """
+  pass
+
+# --- main program   ------------------------------------------------------
+
+if __name__ == "__main__":
+  if len(sys.argv) == 1:
+    help(sys.argv)
+  else:
+    dir = dir()
+    command = sys.argv[1]
+    try:
+      index = dir.index(command)
+      exec command+"(sys.argv[2:])"
+    except ValueError:
+      print "command %s not found!" % command
+      help(sys.argv)
