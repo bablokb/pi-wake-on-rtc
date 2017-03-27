@@ -19,7 +19,9 @@
 # --------------------------------------------------------------------------
 
 import sys
-#import SDL_DS3231
+import datetime
+
+import SDL_DS3231
 
 # --- help   ---------------------------------------------------------------
 
@@ -106,9 +108,9 @@ def set(rtc,argv):
     format = "%d.%m.%Y %H:%M:%S"
 
   if argv[0] == "alarm1":
-    rtc.set_alarm_time(1,new datetime.datetime.strptime(argv[1],format))
+    rtc.set_alarm_time(1,datetime.datetime.strptime(argv[1],format))
   elif argv[0] == "alarm2":
-    rtc.set_alarm_time(2,new datetime.datetime.strptime(argv[1],format))
+    rtc.set_alarm_time(2,datetime.datetime.strptime(argv[1],format))
   else:
     print "invalid argument"
 
@@ -177,7 +179,6 @@ if __name__ == "__main__":
       help()
     elif command in dir:
       rtc = SDL_DS3231.sdl_ds3231(1)      # use i2c-1
-      rtc = None
       exec command+"(rtc,sys.argv[2:])"
     else:
       print "command %s not found!" % command
