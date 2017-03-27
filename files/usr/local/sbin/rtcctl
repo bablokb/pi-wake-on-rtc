@@ -5,7 +5,7 @@
 # Supported commands
 #  help  - dump list of available commands
 #  show  - display datetime, alarm1, alarm2 or all
-#  dump  - display control or status register
+#  dump  - display registers (binary format)
 #  set   - datetime, alarm1, alarm2
 #  on    - turn alarm1/alarm2 on
 #  off   - turn alarm1/alarm2 on
@@ -19,10 +19,11 @@
 # --------------------------------------------------------------------------
 
 import sys
+#import SDL_DS3231
 
 # --- help   ---------------------------------------------------------------
 
-def help(argv):
+def help():
   """
   Dump list of available commands
   """
@@ -30,7 +31,7 @@ def help(argv):
 Available commands (date and time are synonyms):
      help                                - dump list of available commands
      show  [date|time|alarm1|alarm2|all] - display datetime, alarm1, alarm2 or all
-     dump  [control|status|all]          - display control or status register
+     dump  [control|status|all]          - display registers (binary format)
      set   date|time|alarm1|alarm2       - datetime, alarm1, alarm2
      on    date|time|alarm1|alarm2       - turn alarm1/alarm2 on
      off   date|time|alarm1|alarm2       - turn alarm1/alarm2 on
@@ -39,76 +40,145 @@ Available commands (date and time are synonyms):
 
 # --- show   ---------------------------------------------------------------
 
-def show(argv):
+def show(rtc,argv):
   """
   Display date, time, alarm1, alarm2 or all (date and time are synonyms)
   
   Arg: date|time|alarm1|alarm2|all (default: all)
   """
-  print "Arguments: ", argv
-  pass
+  if len(argv) == 0:
+    show(rtc,["date"])
+    show(rtc,["alarm1"])
+    show(rtc,["alarm2"])
+  elif argv[0] == "date" or argv[0] == "time":
+    print "date: %s" % rtc.read_datetime()
+  elif argv[0] == "alarm1":
+    print "alarm1: %s" % rtc.get_alarm_time(1)
+    (enabled,fired) = rtc.get_alarm_state(1)
+    print "        (enabled: %s)" % enabled
+    print "        (fired:   %s)" % fired
+  elif argv[0] == "alarm2":
+    print "alarm2: %s" % rtc.get_alarm_time(2)
+    (enabled,fired) = rtc.get_alarm_state(2)
+    print "        (enabled: %s)" % enabled
+    print "        (fired:   %s)" % fired
+  else:
+    print "invalid argument"
 
 # --- dump   ---------------------------------------------------------------
 
-def dump(argv):
+def dump(rtc,argv):
   """
-  Display control or status register
+  Display register (binary format)
 
   Arg: control|status|all (default: all)
   """
-  pass
+  if len(argv) == 0:
+    print "control: %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
+    print "status:  %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+  elif argv[0] == "control":
+    print "control: %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
+  elif argv[0] == "status":
+    print "status:  %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+  else:
+    print "invalid argument"
 
 # --- set   ----------------------------------------------------------------
 
-def set(argv):
+def set(rtc,argv):
   """
   set date, time, alarm1, alarm2 (date and time are synonyms)
   
   Arg: date|time|alarm1|alarm2
   """
-  pass
+  if len(argv) == 0:
+    print "missing argument"
+  elif argv[0] == "date" or argv[0] == "time":
+    hwclock -w -u
+
+  if len(argv) == 1:
+    print "missing argument"
+    return
+
+  if '/' in argv[1]:
+    format = "%m/%d/%Y %H:%M:%S"
+  else:
+    format = "%d.%m.%Y %H:%M:%S"
+
+  if argv[0] == "alarm1":
+    rtc.set_alarm_time(1,new datetime.datetime.strptime(argv[1],format))
+  elif argv[0] == "alarm2":
+    rtc.set_alarm_time(2,new datetime.datetime.strptime(argv[1],format))
+  else:
+    print "invalid argument"
 
 # --- on  -- ---------------------------------------------------------------
 
-def on(argv):
+def on(rtc,argv):
   """
   Turn alarm1/alarm2 on
 
   Arg: alarm1|alarm2
   """
-  pass
+  if len(argv) == 0:
+    print "missing argument"
+  elif argv[0] == "alarm1":
+    rtc.set_alarm(1,1)
+  elif argv[0] == "alarm2":
+    rtc.set_alarm(2,1)
+    pass
+  else:
+    print "invalid argument"
 
 # --- off   ----------------------------------------------------------------
 
-def off(argv):
+def off(rtc,argv):
   """
   Turn alarm1/alarm2 on
 
   Arg: alarm1|alarm2
   """
-  pass
+  if len(argv) == 0:
+    print "missing argument"
+  elif argv[0] == "alarm1":
+    rtc.set_alarm(1,0)
+  elif argv[0] == "alarm2":
+    rtc.set_alarm(2,0)
+    pass
+  else:
+    print "invalid argument"
 
-# --- help   ---------------------------------------------------------------
+# --- clear  ---------------------------------------------------------------
 
-def clear(argv):
+def clear(rtc,argv):
   """
   Clear alarm1/alarm2-flag
 
   Arg: alarm1|alarm2
   """
-  pass
+  if len(argv) == 0:
+    print "missing argument"
+  elif argv[0] == "alarm1":
+    rtc.clear_alarm(1,0)
+  elif argv[0] == "alarm2":
+    rtc.clear_alarm(2,0)
+  else:
+    print "invalid argument"
 
 # --- main program   ------------------------------------------------------
 
 if __name__ == "__main__":
   if len(sys.argv) == 1:
-    help(sys.argv)
+    help()
   else:
     dir = dir()
     command = sys.argv[1]
-    try:
-      index = dir.index(command)
-      exec command+"(sys.argv[2:])"
-    except ValueError:
+    if command == 'help':
+      help()
+    elif command in dir:
+      rtc = SDL_DS3231.sdl_ds3231(1)      # use i2c-1
+      rtc = None
+      exec command+"(rtc,sys.argv[2:])"
+    else:
       print "command %s not found!" % command
-      help(sys.argv)
+      help()
