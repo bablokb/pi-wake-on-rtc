@@ -11,7 +11,7 @@
 
 # --- basic packages   ------------------------------------------------------
 
-PACKAGES=""
+PACKAGES="python-smbus"
 
 if [ -n "$PACKAGES" ]; then
   apt-get update
