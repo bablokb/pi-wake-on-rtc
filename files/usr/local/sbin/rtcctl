@@ -33,7 +33,8 @@ def help():
 Available commands (date and time are synonyms):
      help                                - dump list of available commands
      show  [date|time|alarm1|alarm2|all] - display datetime, alarm1, alarm2 or all
-     dump  [control|status|all]          - display registers (binary format)
+     dump  [control|status|alarm1|
+                           alarm2|all]   - display registers (binary format)
      set   date|time|alarm1|alarm2       - datetime, alarm1, alarm2
      on    date|time|alarm1|alarm2       - turn alarm1/alarm2 on
      off   date|time|alarm1|alarm2       - turn alarm1/alarm2 on
@@ -76,12 +77,24 @@ def dump(rtc,argv):
   Arg: control|status|all (default: all)
   """
   if len(argv) == 0:
-    print "control: %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
-    print "status:  %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+    dump(rtc,["control"])
+    dump(rtc,["status"])
+    dump(rtc,["alarm1"])
+    dump(rtc,["alarm2"])
   elif argv[0] == "control":
-    print "control: %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
+    print "control:        %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
   elif argv[0] == "status":
-    print "status:  %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+    print "status:         %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+  elif argv[0] == "alarm1":
+    print "alarm1 (sec):   %s" % rtc.dump_register(rtc._ALARM1_SEC_REGISTER)
+    print "alarm1 (min):   %s" % rtc.dump_register(rtc._ALARM1_MIN_REGISTER)
+    print "alarm1 (hour):  %s" % rtc.dump_register(rtc._ALARM1_HOUR_REGISTER)
+    print "alarm1 (date):  %s" % rtc.dump_register(rtc._ALARM1_DATE_REGISTER)
+  elif argv[0] == "alarm2":
+    print "alarm2 (sec):   %s" % rtc.dump_register(rtc._ALARM1_SEC_REGISTER)
+    print "alarm2 (min):   %s" % rtc.dump_register(rtc._ALARM1_MIN_REGISTER)
+    print "alarm2 (hour):  %s" % rtc.dump_register(rtc._ALARM1_HOUR_REGISTER)
+    print "alarm2 (date):  %s" % rtc.dump_register(rtc._ALARM1_DATE_REGISTER)
   else:
     print "invalid argument"
 
