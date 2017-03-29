@@ -32,12 +32,13 @@ def help():
   print """
 Available commands (date and time are synonyms):
      help                                - dump list of available commands
-     show  [date|time|alarm1|alarm2|all] - display datetime, alarm1, alarm2 or all
+     show  [date|time|alarm1|alarm2|
+                               sys|all]  - display given type or all
      dump  [control|status|alarm1|
-                           alarm2|all]   - display registers (binary format)
-     set   date|time|alarm1|alarm2       - datetime, alarm1, alarm2
-     on    date|time|alarm1|alarm2       - turn alarm1/alarm2 on
-     off   date|time|alarm1|alarm2       - turn alarm1/alarm2 on
+                           alarm2|all]   - display registers (hex/binary format)
+     set   date|time|alarm1|alarm2|sys   - datetime, alarm1, alarm2
+     on    alarm1|alarm2                 - turn alarm1/alarm2 on
+     off   alarm1|alarm2                 - turn alarm1/alarm2 on
      clear alarm1|alarm2                 - clear alarm1/alarm2-flag
   """
 
@@ -72,29 +73,37 @@ def show(rtc,argv):
 
 def dump(rtc,argv):
   """
-  Display register (binary format)
+  Display registers (hex/binary format)
 
-  Arg: control|status|all (default: all)
+  Arg: control|status|date|time|alarm1|alarm2|all (default: all)
   """
   if len(argv) == 0:
     dump(rtc,["control"])
     dump(rtc,["status"])
+    dump(rtc,["date"])
     dump(rtc,["alarm1"])
     dump(rtc,["alarm2"])
   elif argv[0] == "control":
     print "control:        %s" % rtc.dump_register(rtc._CONTROL_REGISTER)
   elif argv[0] == "status":
     print "status:         %s" % rtc.dump_register(rtc._STATUS_REGISTER)
+  elif argv[0] == "date" or argv[0] == "time":
+    print "date  (sec):   %s" % rtc.dump_register(rtc._SECONDS_REGISTER)
+    print "date  (min):   %s" % rtc.dump_register(rtc._MINUTES_REGISTER)
+    print "date  (hour):  %s" % rtc.dump_register(rtc._HOURS_REGISTER)
+    print "date  (weekd): %s" % rtc.dump_register(rtc._DAY_OF_WEEK_REGISTER)
+    print "date  (day):   %s" % rtc.dump_register(rtc._DAY_OF_MONTH_REGISTER)
+    print "date  (month): %s" % rtc.dump_register(rtc._MONTH_REGISTER)
+    print "date  (year):  %s" % rtc.dump_register(rtc._YEAR_REGISTER)
   elif argv[0] == "alarm1":
     print "alarm1 (sec):   %s" % rtc.dump_register(rtc._ALARM1_SEC_REGISTER)
     print "alarm1 (min):   %s" % rtc.dump_register(rtc._ALARM1_MIN_REGISTER)
     print "alarm1 (hour):  %s" % rtc.dump_register(rtc._ALARM1_HOUR_REGISTER)
     print "alarm1 (date):  %s" % rtc.dump_register(rtc._ALARM1_DATE_REGISTER)
   elif argv[0] == "alarm2":
-    print "alarm2 (sec):   %s" % rtc.dump_register(rtc._ALARM1_SEC_REGISTER)
-    print "alarm2 (min):   %s" % rtc.dump_register(rtc._ALARM1_MIN_REGISTER)
-    print "alarm2 (hour):  %s" % rtc.dump_register(rtc._ALARM1_HOUR_REGISTER)
-    print "alarm2 (date):  %s" % rtc.dump_register(rtc._ALARM1_DATE_REGISTER)
+    print "alarm2 (min):   %s" % rtc.dump_register(rtc._ALARM2_MIN_REGISTER)
+    print "alarm2 (hour):  %s" % rtc.dump_register(rtc._ALARM2_HOUR_REGISTER)
+    print "alarm2 (date):  %s" % rtc.dump_register(rtc._ALARM2_DATE_REGISTER)
   else:
     print "invalid argument"
 
@@ -174,9 +183,9 @@ def clear(rtc,argv):
   if len(argv) == 0:
     print "missing argument"
   elif argv[0] == "alarm1":
-    rtc.clear_alarm(1,0)
+    rtc.clear_alarm(1)
   elif argv[0] == "alarm2":
-    rtc.clear_alarm(2,0)
+    rtc.clear_alarm(2)
   else:
     print "invalid argument"
 
