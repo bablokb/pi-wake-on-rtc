@@ -1,12 +1,15 @@
 #!/usr/bin/python
 # --------------------------------------------------------------------------
-# Control script for RTC
+# Control script for DS3231-RTC
+#
+# Note that times in the RTC are stored in UTC. You can change this
+# behavior by changing the utc-variable to False.
 #
 # Supported commands
 #  help  - dump list of available commands
-#  show  - display datetime, alarm1, alarm2 or all
+#  show  - display datetime, alarm1, alarm2, sys or all
 #  dump  - display registers (binary format)
-#  set   - datetime, alarm1, alarm2
+#  set   - datetime, alarm1, alarm2 times
 #  on    - turn alarm1/alarm2 on
 #  off   - turn alarm1/alarm2 on
 #  clear - clear alarm1/alarm2-flag
@@ -23,6 +26,11 @@ import datetime
 
 import SDL_DS3231
 
+# --- settings   -----------------------------------------------------------
+
+utc=True                    # all times in the RTC are stored as utc
+                            # with automatic conversion while reading
+
 # --- help   ---------------------------------------------------------------
 
 def help():
@@ -36,7 +44,8 @@ Available commands (date and time are synonyms):
                                sys|all]  - display given type or all
      dump  [control|status|alarm1|
                            alarm2|all]   - display registers (hex/binary format)
-     set   date|time|alarm1|alarm2|sys   - datetime, alarm1, alarm2
+     set   date|time|alarm1|alarm2|sys   - set date/time, alarm1, alarm2 times
+                                           (does not turn alarm on!)
      on    alarm1|alarm2                 - turn alarm1/alarm2 on
      off   alarm1|alarm2                 - turn alarm1/alarm2 on
      clear alarm1|alarm2                 - clear alarm1/alarm2-flag
@@ -200,7 +209,7 @@ if __name__ == "__main__":
     if command == 'help':
       help()
     elif command in dir:
-      rtc = SDL_DS3231.sdl_ds3231(1)      # use i2c-1
+      rtc = SDL_DS3231.sdl_ds3231(1,utc)      # use i2c-1
       exec command+"(rtc,sys.argv[2:])"
     else:
       print "command %s not found!" % command
