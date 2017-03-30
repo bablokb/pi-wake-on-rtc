@@ -9,7 +9,7 @@
 #  help  - dump list of available commands
 #  show  - display datetime, alarm1, alarm2, sys or all
 #  dump  - display registers (binary format)
-#  set   - datetime, alarm1, alarm2 times
+#  set   - datetime, alarm1, alarm2, sys times
 #  on    - turn alarm1/alarm2 on
 #  off   - turn alarm1/alarm2 on
 #  clear - clear alarm1/alarm2-flag
@@ -21,7 +21,7 @@
 #
 # --------------------------------------------------------------------------
 
-import sys
+import os, sys
 import datetime
 
 import SDL_DS3231
@@ -45,6 +45,8 @@ Available commands (date and time are synonyms):
      dump  [control|status|alarm1|
                            alarm2|all]   - display registers (hex/binary format)
      set   date|time|alarm1|alarm2|sys   - set date/time, alarm1, alarm2 times
+                                           Format: dd.mm.YYYY [HH:MM[:SS]] or
+                                                   mm/dd.YYYY [HH:MM[:SS]]
                                            (does not turn alarm on!)
      on    alarm1|alarm2                 - turn alarm1/alarm2 on
      off   alarm1|alarm2                 - turn alarm1/alarm2 on
@@ -57,14 +59,15 @@ def show(rtc,argv):
   """
   Display date, time, alarm1, alarm2 or all (date and time are synonyms)
   
-  Arg: date|time|alarm1|alarm2|all (default: all)
+  Arg: date|time|alarm1|alarm2|sys|all (default: all)
   """
   if len(argv) == 0:
     show(rtc,["date"])
     show(rtc,["alarm1"])
     show(rtc,["alarm2"])
+    show(rtc,["sys"])
   elif argv[0] == "date" or argv[0] == "time":
-    print "date: %s" % rtc.read_datetime()
+    print "date:   %s" % rtc.read_datetime()
   elif argv[0] == "alarm1":
     print "alarm1: %s" % rtc.get_alarm_time(1)
     (enabled,fired) = rtc.get_alarm_state(1)
@@ -75,6 +78,8 @@ def show(rtc,argv):
     (enabled,fired) = rtc.get_alarm_state(2)
     print "        (enabled: %s)" % enabled
     print "        (fired:   %s)" % fired
+  elif argv[0] == "sys":
+    print "sys:    %s" % datetime.datetime.now()
   else:
     print "invalid argument"
 
@@ -127,16 +132,31 @@ def set(rtc,argv):
   if len(argv) == 0:
     print "missing argument"
   elif argv[0] == "date" or argv[0] == "time":
-    hwclock -w -u
-
+    rtc.write_system_datetime_now()
+  elif argv[0] == "sys":
+    dtime = rtc.read_datetime()
+    os.system("date -u -s %s" % dtime)
   if len(argv) == 1:
     print "missing argument"
     return
 
-  if '/' in argv[1]:
+  dateString = argv[1] + (argv[2] if len(argv) > 2 else "")
+  if '/' in dateString:
     format = "%m/%d/%Y %H:%M:%S"
   else:
     format = "%d.%m.%Y %H:%M:%S"
+
+  # add default hour:minutes:secs if not provided
+  if ':'  not in dateString:
+    dateString = dateString + " 00:00:00"
+
+  # parse string and check if we have six items
+  count = dateString.split("./:")
+  if count != 6:
+    print "illegal datetime format!"
+    print "Must be mm/dd/yy[yy] [HH:MM[:SS]] or"
+    print "        dd.mm.yy[yy] [HH:MM[:SS]]"
+    return
 
   if argv[0] == "alarm1":
     rtc.set_alarm_time(1,datetime.datetime.strptime(argv[1],format))
