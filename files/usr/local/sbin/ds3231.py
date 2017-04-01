@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 """
+# --------------------------------------------------------------------------
+# Low-level python interface for the RTC DS3231.
+#
+# Original code from: 
+#
+# Author: Bernhard Bablok (methods related to alarms, various changes and fixes)
+# License: see below (license statement of the original code)
+#
+# Website: https://github.com/bablokb/pi-wake-on-rtc
+#
+# --------------------------------------------------------------------------
+
+#encoding: utf-8
+
+# ---------------------- Original header ------------------------------------
+
 # SDL_DS3231.py Python Driver Code
 # SwitchDoc Labs 12/19/2014
 # V 1.2
@@ -7,9 +23,6 @@
 # now includes reading and writing the AT24C32 included on the SwitchDoc Labs
 #   DS3231 / AT24C32 Module (www.switchdoc.com
 
-#encoding: utf-8
-
-# Copyright (C) 2017 Bernhard Bablok (methods related to alarms)
 # Copyright (C) 2013 @XiErCh
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,6 +42,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# ---------------------- Original header ------------------------------------
 """
 
 import time
