@@ -23,7 +23,7 @@
 
 import os, sys. re, datetime
 
-import SDL_DS3231
+import ds3231
 
 # --- settings   -----------------------------------------------------------
 
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     if command == 'help':
       help()
     elif command in dir:
-      rtc = SDL_DS3231.sdl_ds3231(1,utc)      # use i2c-1
+      rtc = ds3231.ds3231(1,utc)               # use i2c-1
       exec command+"(rtc,sys.argv[2:])"
     else:
       print "command %s not found!" % command
