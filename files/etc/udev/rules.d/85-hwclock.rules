@@ -1,0 +1,11 @@
+# --------------------------------------------------------------------------
+# Set the system-time from the DS3231 RTC as soon as i2c is available
+#
+# Author: Bernhard Bablok
+# License: GPL3
+#
+# Website: https://github.com/bablokb/pi-wake-on-rtc
+#
+# --------------------------------------------------------------------------
+
+KERNEL=="i2c-1", RUN+="/usr/local/sbin/rtcctl set sys"
