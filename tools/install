@@ -28,14 +28,16 @@ fi
 
 for f in `find $(dirname "$0")/../files/ -type f`; do
   cp "$f" "${f#*files}"
+  chown root:root "${f#*files}"
 done
-chmod 755 /usr/local/sbin/wortcsrv.py
+
+chmod 755 /usr/local/sbin/wake-on-rtc.py
 chmod 755 /usr/local/sbin/rtcctl
+chmod 644 /usr/local/sbin/ds3231.py
+
 chmod 644 /etc/wake-on-rtc.conf
 chmod 644 /etc/systemd/system/wake-on-rtc.service
-chown root:root /etc/systemd/system/wake-on-rtc.service \
-                                    /usr/local/sbin/wortcsrv.py \
-                                    /usr/local/sbin/rtcctl
+chmod 644 /etc/udev/rules.d/85-hwclock.rules
 
 # restore old configuration
 if [ -f /etc/wake-on-rtc.conf.$rand ]; then
