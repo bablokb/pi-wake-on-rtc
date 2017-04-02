@@ -3,7 +3,11 @@
 # --------------------------------------------------------------------------
 # Low-level python interface for the RTC DS3231.
 #
-# Original code from: 
+# Original code from: https://github.com/switchdoclabs/RTC_SDL_DS3231
+# forked from:        https://github.com/conradstorz/RTC_SDL_DS3231
+#
+# This version adds alarm-handling and various fixes and simplifications
+# to the original code.
 #
 # Author: Bernhard Bablok (methods related to alarms, various changes and fixes)
 # License: see below (license statement of the original code)
@@ -399,8 +403,20 @@ class ds3231(object):
         year = now.year
         month = now.month
 
-        alarm_dtime = datetime(year,month,day,hour,min,sec)
         enabled,fired = self.get_alarm_state(alarm)
+
+        try:
+            alarm_dtime = datetime(year,month,day,hour,min,sec)
+        except ValueError:
+            # day-of-month might not be valid for current month!
+            # no year roll-over necessary, since this won't happen
+            # for December or January
+            if fired:
+                month = month - 1         # alarm must have been in the past
+            else:
+                month = month + 1         # alarm date is in the future
+            alarm_dtime = datetime(year,month,day,hour,min,sec)
+
         if now > alarm_dtime and not fired:
             # alarm did not fire yet, must be in the future
             month = month + 1
