@@ -39,16 +39,16 @@ def help():
   print """
 Available commands (date and time are synonyms):
      help                                - dump list of available commands
-     show  [date|time|alarm1|alarm2|
-                               sys|all]  - display given type or all
-     dump  [control|status|alarm1|
-                           alarm2|all]   - display registers (hex/binary format)
+     show  [date|time|alarm1|alarm2|sys]
+                                         - display given type or all
+     dump  [control|status|alarm1|alarm1]
+                                         - display registers (hex/binary format)
      set   date|time|alarm1|alarm2|sys   - set date/time, alarm1, alarm2 times
                                            Format: dd.mm.YYYY [HH:MM[:SS]] or
                                                    mm/dd.YYYY [HH:MM[:SS]]
                                            (does not turn alarm on!)
      on    alarm1|alarm2                 - turn alarm1/alarm2 on
-     off   alarm1|alarm2                 - turn alarm1/alarm2 on
+     off   alarm1|alarm2                 - turn alarm1/alarm2 off
      clear alarm1|alarm2                 - clear alarm1/alarm2-flag
   """
 
