@@ -13,12 +13,15 @@
 
 PACKAGES="python-arrow python-smbus"
 
+echo -e "[INFO] installing additional packages" 2>&1
 if [ -n "$PACKAGES" ]; then
   apt-get update
   apt-get -y install $PACKAGES
 fi
 
 # --- install specific files   ----------------------------------------------
+
+echo -e "[INFO] installing project files" 2>&1
 
 rand="$RANDOM"
 if [ -f /etc/wake-on-rtc.conf ]; then
@@ -43,13 +46,24 @@ chmod 644 /etc/udev/rules.d/85-hwclock.rules
 if [ -f /etc/wake-on-rtc.conf.$rand ]; then
   mv -f /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.new
   mv /etc/wake-on-rtc.conf.$rand /etc/wake-on-rtc.conf
-  echo -e "\nnew version of configuration file: /etc/wake-on-rtc.conf.new"
+  echo -e "[INFO] new version of configuration file saved to: /etc/wake-on-rtc.conf.new" 2>&1
 fi
+
+# --- configure system   ----------------------------------------------------
+
+echo -e "[INFO] configuring /boot/config.txt" 2>&1
+echo "dtparam=i2c_arm=on" >> /boot/config.txt
+echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
+
+echo -e "[INFO] configuring /etc/modules" 2>&1
+echo "i2c-dev" >> /etc/modules
 
 # --- activate service   ----------------------------------------------------
 
-systemctl enable wake-on-rtc.service
+#echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
+#systemctl enable wake-on-rtc.service
 
 # --- final configuration is manual   ---------------------------------------
 
-echo "please edit /etc/wake-on-rtc.conf and start wake-on-rtc.service afterwards"
+#echo "please edit /etc/wake-on-rtc.conf and restart the system afterwards"
+echo "please restart the system to activate changes to /boot/config.txt"
