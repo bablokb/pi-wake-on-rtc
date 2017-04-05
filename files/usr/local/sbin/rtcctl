@@ -21,7 +21,7 @@
 #
 # --------------------------------------------------------------------------
 
-import os, sys. re, datetime
+import os, sys, re, datetime
 
 import ds3231
 
