@@ -58,6 +58,10 @@ echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
 echo -e "[INFO] configuring /etc/modules" 2>&1
 echo "i2c-dev" >> /etc/modules
 
+echo -e "[INFO] disabling fake-hwclock.service" 2>&1
+systemctl disable fake-hwclock.service
+systemctl stop    fake-hwclock.service
+
 # --- activate service   ----------------------------------------------------
 
 #echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
