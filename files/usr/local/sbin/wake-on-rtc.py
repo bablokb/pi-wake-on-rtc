@@ -28,12 +28,6 @@ def write_log(msg):
 
 # --------------------------------------------------------------------------
 
-def get_global(cparser):
-  """ return global configurations """
-  return (debug,alarm)
-
-# --------------------------------------------------------------------------
-
 def get_config(cparser):
   """ parse configuration """
   global debug
@@ -44,7 +38,10 @@ def get_config(cparser):
   i2c   = cparser.getint('GLOBAL','i2c')
   utc   = cparser.getint('GLOBAL','utc')
   
-  boot_hook  = cparser.get('boot','hook_cmd')
+ if cparser.has_option('boot','hook_cmd'):
+   boot_hook = cparser.get('boot','hook_cmd')
+ else:
+   boot_hook = None
 
   halt_hook   = cparser.get('halt','hook_cmd')
   lead_time   = cparser.get('halt','lead_time')
@@ -63,6 +60,8 @@ def get_config(cparser):
 def get_datetime(dtstring):
   if '/' in dtstring:
     format = "%m/%d/%Y %H:%M:%S"
+  elif '-' in dtstring:
+    format = "%Y-%m-%d %H:%M:%S"
   else:
     format = "%d.%m.%Y %H:%M:%S"
 
@@ -71,14 +70,15 @@ def get_datetime(dtstring):
     dtstring = dtstring + " 00:00:00"
 
   # parse string and check if we have six items
-  dateParts= re.split('\.|/|:| ',dtstring)
+  dateParts= re.split('\.|/|:|-| ',dtstring)
   count = len(dateParts)
   if count < 5 or count > 6:
     raise ValueError()
   elif count == 5:
     dtstring = dtstring + ":00"
 
-  if len(dateParts[2]) == 2:
+  if '-' in dtstring and len(dateParts[0]) == 2 or (
+    '-' not in dtstring and len(dateParts[2]) == 2):
     format = format.replace('Y','y')
 
   return datetime.datetime.strptime(dtstring,format)
@@ -89,6 +89,7 @@ def process_start():
   """ system startup """
   global config
   write_log("processing system startup")
+  alarm = config['alarm']
 
   # check alarm
   rtc = ds3231.ds3231(config['i2c'],config['utc'])
@@ -101,9 +102,9 @@ def process_start():
     sfile.write(mode)
 
   # execute hook-command
-  write_log("executing boot-hook %s" % config['boot_hook'])
-  proc = subprocess.Popen([config['boot_hook'],mode])
-  # configure async operation!
+  if config['boot_hook']:
+    write_log("executing boot-hook %s" % config['boot_hook'])
+    os.system("%s %s &" % (config['boot_hook'],mode))
 
   # clear and disable alarm
   rtc.clear_alarm(alarm)
@@ -116,6 +117,7 @@ def process_stop():
   """ system shutdown """
   global config
   write_log("processing system shutdown")
+  alarm = config['alarm']
 
   # get next boot-time
   write_log("executing halt-hook %s" % config['halt_hook'])
@@ -123,21 +125,24 @@ def process_stop():
   (boot_time,err) = proc.communicate(None)
   #boot_time = proc.stdout.read()
   write_log("raw boot time: %s" % boot_time)
-  boot_dt = get_datetime(boot_time)
+  boot_dt = get_datetime(boot_time.strip())
   write_log("raw boot_dt: %s" % boot_dt)
   
-  # set alarm
+  # set alarm time
   rtc = ds3231.ds3231(config['i2c'],config['utc'])
-  lead_delta = datetime.timedelta(minutes=config['lead_time'])
+  lead_delta = datetime.timedelta(minutes=int(config['lead_time']))
   boot_dt = boot_dt - lead_delta
-  write_log("calculated boot time: %s" % boot_dt)
-  rtc.set_alarm_time(config['alarm'],boot_dt)
+  write_log("calculated boot_dt: %s" % boot_dt)
+  rtc.set_alarm_time(alarm,boot_dt)
+
+  # enable alarm
+  rtc.set_alarm(alarm,1)
+  write_log("alarm %d enabled" % alarm)
 
   # update hwclock from system-time
   if config['set_hwclock'] == 1:
     rtc.write_system_datetime_now()
-
-    
+    write_log("updated rtc-clock from system-time")
 
 # --------------------------------------------------------------------------
 
