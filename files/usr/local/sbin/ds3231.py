@@ -391,7 +391,12 @@ class ds3231(object):
             return self._next_dt_match(alarm,day,weekday,hour,min,sec)
 
     def _next_dt_match(self,alarm,day,weekday,hour,min,sec):
-        # calculate year/month of alarm
+        """
+        Calculate the next alarm datetime (in case alarm did not fire yet)
+        or the last datetime if the alarm fired.
+        The former is exact while the latter is just a best guess - the
+        alarm could already have fired way in the past.
+        """
         if (self._utc):
             now = datetime.utcnow()
         else:
@@ -405,6 +410,8 @@ class ds3231(object):
 
         enabled,fired = self.get_alarm_state(alarm)
 
+        # first try: assume alarm is in the curren month
+        # we try to create a valid datetime object
         try:
             alarm_dtime = datetime(year,month,day,hour,min,sec)
         except ValueError:
@@ -417,24 +424,43 @@ class ds3231(object):
                 month = month + 1         # alarm date is in the future
             alarm_dtime = datetime(year,month,day,hour,min,sec)
 
+        # check if first alarm-datetime is correct
+        # this depends on the state of the alarm
         if now > alarm_dtime and not fired:
-            # alarm did not fire yet, must be in the future
+            # alarm did not fire yet, but must be in the future
             month = month + 1
             if month > 12:
                 month = 1
                 year  = year + 1
         elif now < alarm_dtime and fired:
-            # alarm fired, must be in the past
+            # alarm fired, but must be in the past
             month = month - 1
             if month == 0:
                 month = 12
                 year = year - 1
-
-        dtime = datetime(year,month,day,hour,min,sec) 
-        if (self._utc):
-          return _utc2local(dtime)
         else:
-          return dtime
+            # proper alignment of now and alarm_dtime, so return it
+            if (self._utc):
+                return _utc2local(alarm_dtime)
+            else:
+                return alarm_dtime
+
+        # second try: we moved the alarm one month, but the day-of-month
+        # might not be valid for the new month
+        try:
+            alarm_dtime = datetime(year,month,day,hour,min,sec)
+        except ValueError:
+            # again, no year roll-over necessary
+            if fired:
+                month = month - 1      # alarm is in the past, go back in time
+            else:
+                month = month + 1      # alarm waiting, i.e. in the future
+            alarm_dtime = datetime(year,month,day,hour,min,sec)
+
+        if (self._utc):
+          return _utc2local(alarm_dtime)
+        else:
+          return alarm_dtime
 
     def get_alarm_state(self,alarm):
         """
