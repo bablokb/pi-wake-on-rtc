@@ -62,9 +62,9 @@ def show(rtc,argv):
   """
   if len(argv) == 0:
     show(rtc,["date"])
+    show(rtc,["sys"])
     show(rtc,["alarm1"])
     show(rtc,["alarm2"])
-    show(rtc,["sys"])
   elif argv[0] == "date" or argv[0] == "time":
     print "date:   %s" % rtc.read_datetime()
   elif argv[0] == "alarm1":
