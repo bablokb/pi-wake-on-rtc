@@ -48,7 +48,7 @@ def get_config(cparser):
    auto_halt = 0
 
   next_boot   = cparser.get('halt','next_boot')
-  lead_time   = cparser.get('halt','lead_time')
+  lead_time   = cparser.getint('halt','lead_time')
   set_hwclock = cparser.get('halt','set_hwclock')
 
   return {'alarm':       alarm,
@@ -106,7 +106,7 @@ def get_boottime():
   write_log("raw boot_dt: %s" % boot_dt)
 
   # substract lead_time
-  lead_delta = datetime.timedelta(minutes=int(config['lead_time']))
+  lead_delta = datetime.timedelta(minutes=config['lead_time'])
   boot_dt = boot_dt - lead_delta
   write_log("calculated boot_dt: %s" % boot_dt)
 
@@ -126,6 +126,11 @@ def process_start():
   mode = "alarm" if enabled and fired else "normal"
   write_log("startup-mode: %s" % mode)
 
+  # clear and disable alarm
+  rtc.clear_alarm(alarm)
+  rtc.set_alarm(alarm,0)
+  write_log("alarm %d cleared and disabled" % alarm)
+
   # create status-file /var/run/wake-on-rtc.status
   with  open("/var/run/wake-on-rtc.status","w") as sfile:
     sfile.write(mode)
@@ -133,12 +138,26 @@ def process_start():
   # execute hook-command
   if config['boot_hook']:
     write_log("executing boot-hook %s" % config['boot_hook'])
-    os.system("%s %s &" % (config['boot_hook'],mode))
+    try:
+      os.system("%s %s &" % (config['boot_hook'],mode))
+    except:
+      syslog.syslog("Error while executing boot-hook: %s" % sys.exc_info()[0])
 
-  # clear and disable alarm
-  rtc.clear_alarm(alarm)
-  rtc.set_alarm(alarm,0)
-  write_log("alarm %d cleared and disabled" % alarm)
+  # check if we need to shutdown
+  if mode == "alarm" and config['auto_halt'] > 0:
+    write_log("processing auto_halt: checking for next boot-time")
+    try:
+      boot_dt = get_boottime()
+      if boot_dt:
+        # calculate now+auto_halt
+        limit_dt = (datetime.datetime.now() +
+                    datetime.timedelta(minutes=config['auto_halt']))
+        write_log("now+auto_halt: %s" % limit_dt)
+        if boot_dt > limit_dt:
+          write_log("next boot-time is after limit. Shutting down!")
+          os.system("shutdown -P +1 &")
+    except:
+      syslog.syslog("Error while auto_halt processing: %s" % sys.exc_info()[0])
 
 # --- system shutdown   ----------------------------------------------------
 
