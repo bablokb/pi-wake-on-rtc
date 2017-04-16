@@ -83,6 +83,24 @@ def get_datetime(dtstring):
 
   return datetime.datetime.strptime(dtstring,format)
 
+# --- query next boot-time   -----------------------------------------------
+
+def get_boottime():
+  global config
+  write_log("executing halt-hook %s" % config['halt_hook'])
+  proc = subprocess.Popen(config['halt_hook'], stdout=subprocess.PIPE)
+  (boot_time,err) = proc.communicate(None)
+  write_log("raw boot time: %s" % boot_time)
+  boot_dt = get_datetime(boot_time.strip())
+  write_log("raw boot_dt: %s" % boot_dt)
+
+  # substract lead_time
+  lead_delta = datetime.timedelta(minutes=int(config['lead_time']))
+  boot_dt = boot_dt - lead_delta
+  write_log("calculated boot_dt: %s" % boot_dt)
+
+  return boot_dt
+
 # --- system startup   -----------------------------------------------------
 
 def process_start():
@@ -119,25 +137,16 @@ def process_stop():
   write_log("processing system shutdown")
   alarm = config['alarm']
 
-  # get next boot-time
-  write_log("executing halt-hook %s" % config['halt_hook'])
-  proc = subprocess.Popen(config['halt_hook'], stdout=subprocess.PIPE)
-  (boot_time,err) = proc.communicate(None)
-  #boot_time = proc.stdout.read()
-  write_log("raw boot time: %s" % boot_time)
-  boot_dt = get_datetime(boot_time.strip())
-  write_log("raw boot_dt: %s" % boot_dt)
-  
-  # set alarm time
+  # set alarm
   rtc = ds3231.ds3231(config['i2c'],config['utc'])
-  lead_delta = datetime.timedelta(minutes=int(config['lead_time']))
-  boot_dt = boot_dt - lead_delta
-  write_log("calculated boot_dt: %s" % boot_dt)
-  rtc.set_alarm_time(alarm,boot_dt)
-
-  # enable alarm
-  rtc.set_alarm(alarm,1)
-  write_log("alarm %d enabled" % alarm)
+  try:
+    boot_dt = get_boottime()
+    rtc.set_alarm_time(alarm,boot_dt)
+    write_log("alarm %d set to %s" % alarm,boot_dt)
+    rtc.set_alarm(alarm,1)
+    write_log("alarm %d enabled" % alarm)
+  except:
+    pass
 
   # update hwclock from system-time
   if config['set_hwclock'] == 1:
