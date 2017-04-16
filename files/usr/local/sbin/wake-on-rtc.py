@@ -43,7 +43,7 @@ def get_config(cparser):
  else:
    boot_hook = None
 
-  halt_hook   = cparser.get('halt','hook_cmd')
+  next_boot   = cparser.get('halt','next_boot')
   lead_time   = cparser.get('halt','lead_time')
   set_hwclock = cparser.get('halt','set_hwclock')
 
@@ -51,7 +51,7 @@ def get_config(cparser):
           'i2c':         i2c,
           'utc':         utc,
           'boot_hook':   boot_hook,
-          'halt_hook':   halt_hook,
+          'next_boot':   next_boot,
           'lead_time':   lead_time,
           'set_hwclock': set_hwclock}
 
@@ -87,8 +87,8 @@ def get_datetime(dtstring):
 
 def get_boottime():
   global config
-  write_log("executing halt-hook %s" % config['halt_hook'])
-  proc = subprocess.Popen(config['halt_hook'], stdout=subprocess.PIPE)
+  write_log("executing next_boot-hook %s" % config['next_boot'])
+  proc = subprocess.Popen(config['next_boot'], stdout=subprocess.PIPE)
   (boot_time,err) = proc.communicate(None)
   write_log("raw boot time: %s" % boot_time)
   boot_dt = get_datetime(boot_time.strip())
