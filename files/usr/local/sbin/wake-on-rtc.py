@@ -88,9 +88,15 @@ def get_datetime(dtstring):
 def get_boottime():
   global config
   write_log("executing next_boot-hook %s" % config['next_boot'])
-  proc = subprocess.Popen(config['next_boot'], stdout=subprocess.PIPE)
+  proc = subprocess.Popen(config['next_boot'],
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   (boot_time,err) = proc.communicate(None)
   write_log("raw boot time: %s" % boot_time)
+  if len(err) > 0:
+    write_log("error text of next_boot-hook: %s" % err)
+    raise ValueError(err)
+  elif len(boot_time) < 8:
+    return None
   boot_dt = get_datetime(boot_time.strip())
   write_log("raw boot_dt: %s" % boot_dt)
 
@@ -141,12 +147,13 @@ def process_stop():
   rtc = ds3231.ds3231(config['i2c'],config['utc'])
   try:
     boot_dt = get_boottime()
-    rtc.set_alarm_time(alarm,boot_dt)
-    write_log("alarm %d set to %s" % alarm,boot_dt)
-    rtc.set_alarm(alarm,1)
-    write_log("alarm %d enabled" % alarm)
+    if boot_dt:
+      rtc.set_alarm_time(alarm,boot_dt)
+      write_log("alarm %d set to %s" % alarm,boot_dt)
+      rtc.set_alarm(alarm,1)
+      write_log("alarm %d enabled" % alarm)
   except:
-    pass
+    syslog.syslog("Error while setting alarm-time: %s" % sys.exc_info()[0])
 
   # update hwclock from system-time
   if config['set_hwclock'] == 1:
