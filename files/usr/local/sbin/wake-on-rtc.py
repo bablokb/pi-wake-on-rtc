@@ -42,6 +42,10 @@ def get_config(cparser):
    boot_hook = cparser.get('boot','hook_cmd')
  else:
    boot_hook = None
+ if cparser.has_option('boot','auto_halt'):
+   auto_halt = cparser.getint('boot','auto_halt')
+ else:
+   auto_halt = 0
 
   next_boot   = cparser.get('halt','next_boot')
   lead_time   = cparser.get('halt','lead_time')
@@ -51,6 +55,7 @@ def get_config(cparser):
           'i2c':         i2c,
           'utc':         utc,
           'boot_hook':   boot_hook,
+          'auto_halt':   auto_halt,
           'next_boot':   next_boot,
           'lead_time':   lead_time,
           'set_hwclock': set_hwclock}
