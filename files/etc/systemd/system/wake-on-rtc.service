@@ -15,7 +15,8 @@
 Description=Wake-on-RTC service
 DefaultDependencies=no
 After=sysinit.target local-fs.target
-Before=basic.target
+Before=basic.target shutdown.target
+Conflicts=shutdown.target
  
 [Service]
 Type=oneshot
