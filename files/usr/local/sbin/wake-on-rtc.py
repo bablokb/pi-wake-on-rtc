@@ -22,9 +22,12 @@ import ds3231
 # --------------------------------------------------------------------------
 
 def write_log(msg):
-  global debug
+  global debug, fp_log
   if debug == '1':
     syslog.syslog(msg)
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fp_log.write("[" + now + "] " + msg+"\n")
+    fp_log.flush()
 
 # --------------------------------------------------------------------------
 
@@ -38,14 +41,14 @@ def get_config(cparser):
   i2c   = cparser.getint('GLOBAL','i2c')
   utc   = cparser.getint('GLOBAL','utc')
   
- if cparser.has_option('boot','hook_cmd'):
-   boot_hook = cparser.get('boot','hook_cmd')
- else:
-   boot_hook = None
- if cparser.has_option('boot','auto_halt'):
-   auto_halt = cparser.getint('boot','auto_halt')
- else:
-   auto_halt = 0
+  if cparser.has_option('boot','hook_cmd'):
+    boot_hook = cparser.get('boot','hook_cmd')
+  else:
+    boot_hook = None
+  if cparser.has_option('boot','auto_halt'):
+    auto_halt = cparser.getint('boot','auto_halt')
+  else:
+    auto_halt = 0
 
   next_boot   = cparser.get('halt','next_boot')
   lead_time   = cparser.getint('halt','lead_time')
@@ -157,7 +160,7 @@ def process_start():
           write_log("next boot-time is after limit. Shutting down!")
           os.system("shutdown -P +1 &")
     except:
-      syslog.syslog("Error while auto_halt processing: %s" % sys.exc_info()[0])
+      syslog.syslog("Error while auto_halt uprocessing: %s" % sys.exc_info()[0])
 
 # --- system shutdown   ----------------------------------------------------
 
@@ -173,7 +176,7 @@ def process_stop():
     boot_dt = get_boottime()
     if boot_dt:
       rtc.set_alarm_time(alarm,boot_dt)
-      write_log("alarm %d set to %s" % alarm,boot_dt)
+      write_log("alarm %d set to %s" % (alarm,boot_dt))
       rtc.set_alarm(alarm,1)
       write_log("alarm %d enabled" % alarm)
   except:
@@ -194,6 +197,8 @@ def signal_handler(_signo, _stack_frame):
 # --- main program   -------------------------------------------------------
 
 syslog.openlog("wake-on-rtc")
+fp_log = open("/var/log/wake-on-rtc.log","at")
+
 parser = ConfigParser.RawConfigParser(
   {'debug': '0',
    'alarm': 1,
@@ -218,3 +223,4 @@ try:
 except:
   syslog.syslog("Error while executing service: %s" % sys.exc_info()[0])
   raise
+fp_log.close()
