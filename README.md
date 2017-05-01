@@ -91,9 +91,9 @@ the system time. Check the system time and the time of the rtc:
     sudo rtcctl show date
 
 If the system time is correct and the time matches, you are done. Otherwise
-write the system time to the rtc:
+initialize the rtc once with:
 
-    sudo rtcctl set date
+    sudo rtcctl init
 
 Note that the standard linux tool `hwclock` will not work, since we don't
 expose the standard rtc-device interface of the rtc.
@@ -165,6 +165,7 @@ fired:
 
     Available commands (date and time are synonyms):
          help                                - dump list of available commands
+         init                                - initialize RTC
          show  [date|time|alarm1|alarm2|sys]
                                              - display given type or all
          dump  [control|status|alarm1|alarm2]
