@@ -173,11 +173,11 @@ def process_stop():
   # set alarm
   rtc = ds3231.ds3231(config['i2c'],config['utc'])
   try:
+    rtc.clear_alarm(alarm)           # always clear the alarm
     boot_dt = get_boottime()
     if boot_dt:
       rtc.set_alarm_time(alarm,boot_dt)
       write_log("alarm %d set to %s" % (alarm,boot_dt))
-      rtc.clear_alarm(alarm)
       rtc.set_alarm(alarm,1)
       write_log("alarm %d cleared and enabled" % alarm)
   except:
