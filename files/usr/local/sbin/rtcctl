@@ -7,6 +7,7 @@
 #
 # Supported commands
 #  help  - dump list of available commands
+#  init  - initialize registers with sensible values
 #  show  - display datetime, alarm1, alarm2, sys or all
 #  dump  - display registers (binary format)
 #  set   - datetime, alarm1, alarm2, sys times
@@ -39,6 +40,7 @@ def help():
   print """
 Available commands (date and time are synonyms):
      help                                - dump list of available commands
+     init                                - initialize RTC
      show  [date|time|alarm1|alarm2|sys]
                                          - display given type or all
      dump  [control|status|alarm1|alarm1]
@@ -51,6 +53,21 @@ Available commands (date and time are synonyms):
      off   alarm1|alarm2                 - turn alarm1/alarm2 off
      clear alarm1|alarm2                 - clear alarm1/alarm2-flag
   """
+
+# --- init   ---------------------------------------------------------------
+
+def init(rtc,argv):
+  """
+  Initialize RTC (set rtc-datetime to system-datetime, set alarm-times
+  and clear/disable alarms)
+  """
+  rtc.write_system_datetime_now()
+  rtc.set_alarm_time(1,datetime.datetime.now())
+  rtc.clear_alarm(1)
+  rtc.set_alarm(1,0)
+  rtc.set_alarm_time(2,datetime.datetime.now())
+  rtc.clear_alarm(2)
+  rtc.set_alarm(2,0)
 
 # --- show   ---------------------------------------------------------------
 
