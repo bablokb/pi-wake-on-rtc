@@ -177,8 +177,9 @@ def process_stop():
     if boot_dt:
       rtc.set_alarm_time(alarm,boot_dt)
       write_log("alarm %d set to %s" % (alarm,boot_dt))
+      rtc.clear_alarm(alarm)
       rtc.set_alarm(alarm,1)
-      write_log("alarm %d enabled" % alarm)
+      write_log("alarm %d cleared and enabled" % alarm)
   except:
     syslog.syslog("Error while setting alarm-time: %s" % sys.exc_info()[0])
 
