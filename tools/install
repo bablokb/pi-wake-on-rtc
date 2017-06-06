@@ -9,6 +9,8 @@
 #
 # --------------------------------------------------------------------------
 
+PACKAGES="python-arrow python-smbus"
+
 # --- basic packages   ------------------------------------------------------
 
 check_packages() {
@@ -21,70 +23,80 @@ check_packages() {
   return 1
 }
 
-PACKAGES="python-arrow python-smbus"
-
-if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
-  echo -e "[INFO] installing additional packages" 2>&1
-  apt-get update
-  apt-get -y install $PACKAGES
-fi
+install_packages() {
+  if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
+    echo -e "[INFO] installing additional packages" 2>&1
+    apt-get update
+    apt-get -y install $PACKAGES
+  fi
+}
 
 # --- install specific files   ----------------------------------------------
 
-echo -e "[INFO] installing project files" 2>&1
+install_files() {
+  echo -e "[INFO] installing project files" 2>&1
 
-rand="$RANDOM"
-if [ -f /etc/wake-on-rtc.conf ]; then
-  # save current configuration
-  mv /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.$rand
-fi
+  rand="$RANDOM"
+  if [ -f /etc/wake-on-rtc.conf ]; then
+    # save current configuration
+    mv /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.$rand
+  fi
 
-for f in `find $(dirname "$0")/../files/ -type f`; do
-  cp "$f" "${f#*files}"
-  chown root:root "${f#*files}"
-done
+  for f in `find $(dirname "$0")/../files/ -type f`; do
+    cp "$f" "${f#*files}"
+    chown root:root "${f#*files}"
+  done
 
-chmod 755 /usr/local/sbin/wake-on-rtc.py
-chmod 755 /usr/local/sbin/rtcctl
-chmod 644 /usr/local/sbin/ds3231.py
+  chmod 755 /usr/local/sbin/wake-on-rtc.py
+  chmod 755 /usr/local/sbin/rtcctl
+  chmod 644 /usr/local/sbin/ds3231.py
 
-chmod 644 /etc/wake-on-rtc.conf
-chmod 644 /etc/systemd/system/wake-on-rtc.service
-chmod 644 /etc/udev/rules.d/85-hwclock.rules
+  chmod 644 /etc/wake-on-rtc.conf
+  chmod 644 /etc/systemd/system/wake-on-rtc.service
+  chmod 644 /etc/udev/rules.d/85-hwclock.rules
 
-# restore old configuration
-if [ -f /etc/wake-on-rtc.conf.$rand ]; then
-  mv -f /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.new
-  mv /etc/wake-on-rtc.conf.$rand /etc/wake-on-rtc.conf
-  echo -e "[INFO] new version of configuration file saved to: /etc/wake-on-rtc.conf.new" 2>&1
-fi
+  # restore old configuration
+  if [ -f /etc/wake-on-rtc.conf.$rand ]; then
+    mv -f /etc/wake-on-rtc.conf /etc/wake-on-rtc.conf.new
+    mv /etc/wake-on-rtc.conf.$rand /etc/wake-on-rtc.conf
+    echo -e "[INFO] new version of configuration file saved to: /etc/wake-on-rtc.conf.new" 2>&1
+  fi
+}
 
 # --- configure system   ----------------------------------------------------
 
-if ! grep -q "^dtparam=i2c_arm=on"; then do
-  echo -e "[INFO] configuring /boot/config.txt" 2>&1
-  echo "dtparam=i2c_arm=on" >> /boot/config.txt
-fi
-if ! grep -q "^dtoverlay=gpio-poweroff,gpiopin=4"; then do
-  echo -e "[INFO] configuring /boot/config.txt" 2>&1
-  echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
-fi
+configure_system() {
+  if ! grep -q "^dtparam=i2c_arm=on"; then do
+    echo -e "[INFO] configuring /boot/config.txt" 2>&1
+    echo "dtparam=i2c_arm=on" >> /boot/config.txt
+  fi
+  if ! grep -q "^dtoverlay=gpio-poweroff,gpiopin=4"; then do
+    echo -e "[INFO] configuring /boot/config.txt" 2>&1
+    echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
+  fi
 
-if ! grep -q "^i2c-dev" /etc/modules; then
-  echo -e "[INFO] configuring /etc/modules" 2>&1
-  echo "i2c-dev" >> /etc/modules
-fi
+  if ! grep -q "^i2c-dev" /etc/modules; then
+    echo -e "[INFO] configuring /etc/modules" 2>&1
+    echo "i2c-dev" >> /etc/modules
+  fi
 
-echo -e "[INFO] disabling fake-hwclock.service" 2>&1
-systemctl disable fake-hwclock.service
-systemctl stop    fake-hwclock.service
+  echo -e "[INFO] disabling fake-hwclock.service" 2>&1
+  systemctl disable fake-hwclock.service
+  systemctl stop    fake-hwclock.service
+}
 
 # --- activate service   ----------------------------------------------------
 
-echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
-systemctl enable wake-on-rtc.service
+enable_services() {
+  echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
+  systemctl enable wake-on-rtc.service
+}
 
-# --- final configuration is manual   ---------------------------------------
+# --- main program   --------------------------------------------------------
+
+install_packages
+install_files
+configure_system
 
 echo "Please edit /etc/wake-on-rtc.conf"
 echo "Restart the system to activate changes"
