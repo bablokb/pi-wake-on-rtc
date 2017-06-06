@@ -11,10 +11,20 @@
 
 # --- basic packages   ------------------------------------------------------
 
+check_packages() {
+  local p
+  for p in "$@"; do
+    echo -en "Checking $p ... " >&2
+    dpkg -s "$p" 2>/dev/null | grep -q "Status.*ok" || return 0
+    echo "ok" >&2
+  done
+  return 1
+}
+
 PACKAGES="python-arrow python-smbus"
 
-echo -e "[INFO] installing additional packages" 2>&1
-if [ -n "$PACKAGES" ]; then
+if [ -n "$PACKAGES" ] && check_packages $PACKAGES; then
+  echo -e "[INFO] installing additional packages" 2>&1
   apt-get update
   apt-get -y install $PACKAGES
 fi
@@ -64,10 +74,10 @@ systemctl stop    fake-hwclock.service
 
 # --- activate service   ----------------------------------------------------
 
-#echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
-#systemctl enable wake-on-rtc.service
+echo -e "[INFO] enabeling wake-on-rtc.service" 2>&1
+systemctl enable wake-on-rtc.service
 
 # --- final configuration is manual   ---------------------------------------
 
-#echo "please edit /etc/wake-on-rtc.conf and restart the system afterwards"
-echo "please restart the system to activate changes to /boot/config.txt"
+echo "Please edit /etc/wake-on-rtc.conf"
+echo "Restart the system to activate changes"
