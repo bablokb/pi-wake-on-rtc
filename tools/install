@@ -61,12 +61,19 @@ fi
 
 # --- configure system   ----------------------------------------------------
 
-echo -e "[INFO] configuring /boot/config.txt" 2>&1
-echo "dtparam=i2c_arm=on" >> /boot/config.txt
-echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
+if ! grep -q "^dtparam=i2c_arm=on"; then do
+  echo -e "[INFO] configuring /boot/config.txt" 2>&1
+  echo "dtparam=i2c_arm=on" >> /boot/config.txt
+fi
+if ! grep -q "^dtoverlay=gpio-poweroff,gpiopin=4"; then do
+  echo -e "[INFO] configuring /boot/config.txt" 2>&1
+  echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
+fi
 
-echo -e "[INFO] configuring /etc/modules" 2>&1
-echo "i2c-dev" >> /etc/modules
+if ! grep -q "^i2c-dev" /etc/modules; then
+  echo -e "[INFO] configuring /etc/modules" 2>&1
+  echo "i2c-dev" >> /etc/modules
+fi
 
 echo -e "[INFO] disabling fake-hwclock.service" 2>&1
 systemctl disable fake-hwclock.service
