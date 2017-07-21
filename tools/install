@@ -66,11 +66,11 @@ install_files() {
 # --- configure system   ----------------------------------------------------
 
 configure_system() {
-  if ! grep -q "^dtparam=i2c_arm=on"; then
+  if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
     echo -e "[INFO] configuring /boot/config.txt" 2>&1
     echo "dtparam=i2c_arm=on" >> /boot/config.txt
   fi
-  if ! grep -q "^dtoverlay=gpio-poweroff,gpiopin=4"; then
+  if ! grep -q "^dtoverlay=gpio-poweroff,gpiopin=4" /boot/config.txt; then
     echo -e "[INFO] configuring /boot/config.txt" 2>&1
     echo "dtoverlay=gpio-poweroff,gpiopin=4" >> /boot/config.txt
   fi
