@@ -52,7 +52,7 @@ def get_config(cparser):
 
   next_boot   = cparser.get('halt','next_boot')
   lead_time   = cparser.getint('halt','lead_time')
-  set_hwclock = cparser.get('halt','set_hwclock')
+  set_hwclock = cparser.getint('halt','set_hwclock')
 
   return {'alarm':       alarm,
           'i2c':         i2c,
